@@ -17,19 +17,55 @@ function App() {
     const [showOnlyUnread, setShowOnlyUnread] = useState(false)
     const [pagesToday, setPagesToday] = useState(0)
 
-return (        
-<div class="app">
+    useEffect(() => {
+        document.title = currentScreen === 'shelf' ? 'Shelf — Моя полка' : 'Shelf — Статистика'
+    }, [currentScreen])
 
-  <div class="app-header">
-    <div class="brand">
-      <div class="brand-mark">S</div>
-      <div class="brand-name">Shelf</div>
-    </div>
-    <div class="view-switch">
-      <button class="view-btn active" data-screen="shelf">Моя полка</button>
-      <button class="view-btn" data-screen="stats">Статистика</button>
-    </div>
-  </div>
+    const handleAdd = (title) => {
+        const newBook = { id: nanoid(), title, author: 'Автор не указан', read: false }
+        setBooks(prev => [...prev, newBook])
+    }
+
+    const handleToggleRead = (id) => {
+        setBooks(prev => prev.map(book => book.id === id ? { ...book, read: !book.read } : book))
+    }
+
+    const handleDelete = (id) => {
+        setBooks(prev => prev.filter(book => book.id !== id))
+    }
+
+    const handleIncrease = () => setPagesToday(prev => prev + 1)
+    const handleDecrease = () => setPagesToday(prev => Math.max(0, prev - 1))
+
+    return (
+        <div className="app">
+            <div className="app-header">
+                <div className="brand">
+                    <div className="brand-mark">S</div>
+                    <div className="brand-name">Shelf</div>
+                </div>
+                <ViewSwitch currentScreen={currentScreen} onChange={setCurrentScreen}/>
+            </div>
+            {currentScreen === 'shelf' && (
+                <ShelfScreen
+                    books={books}
+                    showOnlyUnread={showOnlyUnread}
+                    onAdd={handleAdd}
+                    onFilterChange={e => setShowOnlyUnread(e.target.checked)}
+                    onToggleRead={handleToggleRead}
+                    onDelete={handleDelete}
+                />
+            )}
+            {currentScreen === 'stats' && (
+                <StatsScreen
+                    books={books}
+                    pagesToday={pagesToday}
+                    onDecrease={handleDecrease}
+                    onIncrease={handleIncrease}
+                    onReset={() => setPagesToday(0)}
+                />
+            )}
+        </div>
     )
 }
 
